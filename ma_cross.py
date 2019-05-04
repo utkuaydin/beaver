@@ -76,7 +76,7 @@ def run():
     portfolio = MarketOnClosePortfolio(symbol, bars, signals, initial_capital=capital)
     returns = portfolio.backtest_portfolio()
 
-    returns.tail(10)
+    print(returns.tail(10))
 
     fig = plt.figure(figsize=(16, 8))
 
