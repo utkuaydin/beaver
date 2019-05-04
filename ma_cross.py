@@ -63,7 +63,8 @@ def run():
     capital = float(sys.argv[2] if len(sys.argv) > 2 else 100000.0)
 
     con = sqlite3.connect('{}/data/bist.db'.format(os.getcwd()))
-    query = "SELECT TARIH AS 'Date', ACILIS_FIYATI AS 'Open', KAPANIS_FIYATI AS 'Close' FROM data WHERE ISLEM__KODU=? AND GECICI_DURDURMA=0 ORDER BY TARIH"
+    query = '''SELECT TARIH AS 'Date', ACILIS_FIYATI AS 'Open', KAPANIS_FIYATI AS 'Close'
+               FROM data WHERE ISLEM__KODU=? AND GECICI_DURDURMA=0 ORDER BY TARIH'''
 
     bars = pd.read_sql_query(query, con=con, params=[symbol])
     bars['Date'] = pd.to_datetime(bars['Date'])
