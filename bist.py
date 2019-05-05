@@ -1,118 +1,106 @@
 import datetime
 import requests
-import zipfile
-import pandas
+import zipfile as zf
+import pandas as pd
 import sqlite3
+import re
 
 
-kokdizin = "http://www.borsaistanbul.com"
-bulten_verileri_tablosu = "bultenverileri"
-borsa_veritabani_yeri= "./data/borsaist.db"
+main_url = "http://www.borsaistanbul.com/data/thb/"
+db_path = "./data/borsaist.db"
 
 
-def tablo_kolon_ismi_olustur(parametre_adi):
-    """csv'den alınan başlıklardan veritabanı kolonları için isim 
-    oluşturma"""
-    import re
-    regex = re.compile('[^a-zA-Z0-9 ]')
-    parametre_adi= regex.sub('', parametre_adi)
-    return parametre_adi.replace(" ", "_")
-
-def kolon_isimlerini_degistir(df):
+def alter_column_names(df):
     new_column_names = {}
-    for i in df.columns:
-        new_column_names[i]= tablo_kolon_ismi_olustur(i)
+    for value in df.columns:
+        key = value
+        regex = re.compile('[^a-zA-Z0-9 ]')
+        value = regex.sub('', value).replace(" ", "_")
+        new_column_names[key] = value
     df.rename(columns = new_column_names, inplace = True)
 
-def bulten_veri_url_olustur(tarih):
-    """Verilen tarih için bulten verilerine erişim
-    urlsini ve ilgili klasör ve dosya adını oluşturur"""
-    #bultenverileriformati = "/data/thb/YYYY/AA/"
-    #bultenverileri_dosya_formati= "thbYYYYAAGGS.zip"
-    altdizin = "/data/thb/" + str(tarih.year)
-    if tarih.month < 10:
-        altdizin = altdizin + "/0" + str(tarih.month) + "/"
+def create_urls(date):
+    sub_path = ""
+    if date.month < 10:
+        sub_path = str(date.year) + "/0" + str(date.month) + "/"
     else:
-        altdizin = altdizin + "/" + str(tarih.month) + "/"
-    dosyaadi = "thb" + str(tarih.year) 
-    if tarih.month < 10:    
-        dosyaadi += "0" + str(tarih.month)
+        sub_path = str(date.year) + "/" + str(date.month) + "/"
+    file_name = "thb" + str(date.year) 
+    if date.month < 10:    
+        file_name += "0" + str(date.month)
     else:
-        dosyaadi += str(tarih.month)
-    if tarih.day <10:
-        dosyaadi += "0"  + str(tarih.day)
+        file_name += str(date.month)
+    if date.day <10:
+        file_name += "0"  + str(date.day)
     else:
-        dosyaadi += str(tarih.day)
-    zipdosyaadi = dosyaadi + "1.zip"
-    csvdosyaadi = dosyaadi + "1.csv"
-    url = kokdizin + altdizin + zipdosyaadi
+        file_name += str(date.day)
+    zip_file_path = file_name + "1.zip"
+    csv_file_path = file_name + "1.csv"
+    url = main_url + sub_path + zip_file_path
     print (url)
-    return url, zipdosyaadi, csvdosyaadi
+    return url, zip_file_path, csv_file_path
 
-def veri_al(tarih):
-    url, zipdosyaadi,csvdosyaadi = bulten_veri_url_olustur(tarih)
-    zipdosya = requests.get(url)
-    status = zipdosya.status_code
+def get_data(date):
+    url, zip_file_path,csv_file_path = create_urls(date)
+    zip_file = requests.get(url)
+    status = zip_file.status_code
     if status == 200:
-        with open("./downloads/"+zipdosyaadi,'wb') as output:
-            output.write(zipdosya.content)
-        with zipfile.ZipFile("./downloads/"+ zipdosyaadi,'r') as zipdosya:
-            zipdosya.extractall("./downloads/")
-        with open ("./downloads/"+ csvdosyaadi,'r') as dosya:
-            df = pandas.read_csv(dosya, header = 0, delimiter= ";", 
-                                 skiprows= 0)
-        df = df.drop(0)
+        with open("./data/downloads/" + zip_file_path,'wb') as output:
+            output.write(zip_file.content)
+        with zf.ZipFile("./data/downloads/" + zip_file_path,'r') as zip_file:
+            zip_file.extractall("./data/downloads/")
+        with open ("./data/downloads/" + csv_file_path,'r') as file:
+            df = pd.read_csv(file, header = 0, delimiter= ";", 
+                                 skiprows= 1)
     else :
-        df= None
+        df = None
     return df, status
 
-def baslangic_islemleri():
-    conn = sqlite3.connect(borsa_veritabani_yeri)
+def check_db_exists():
+    conn = sqlite3.connect(db_path)
     cur = conn.cursor()
-    fromdate = datetime.date(2017,10,19)
+    start_date = datetime.date(2017,10,19)
     cur.execute("select name from sqlite_master where type = 'table'")
-    tablolar = cur.fetchall()
-    print (tablolar)
-    if len(tablolar)==0 or ("bultenverileri" not in tablolar[0]):
-        print (fromdate)
-        df, status= veri_al(fromdate)
-        kolon_isimlerini_degistir(df)
-        df.to_sql("bultenverileri",conn, if_exists="append", index = False)
-        cur.execute("create table 'alinan_veriler' (tarih date, durum integer)")
-        date = (str(fromdate),1)
-        cur.execute("insert into 'alinan_veriler'(tarih, durum) values (?,?)",
+    tables = cur.fetchall()
+    print (tables)
+    if len(tables)==0 or ("bist" not in tables[0]):
+        print (start_date)
+        df, status= get_data(start_date)
+        alter_column_names(df)
+        df.to_sql("bist", conn, if_exists = "append", index = False)
+        cur.execute("create table 'saved_values' (date date, status integer)")
+        date = (str(start_date), 1)
+        cur.execute("insert into 'saved_values'(date, status) values (?,?)",
                     (date))
         conn.commit()
-    cur.execute("select tarih from 'alinan_veriler'")
-    alinmis_veriler = cur.fetchall()    
-    return conn, cur, alinmis_veriler
+    cur.execute("select date from 'saved_values'")
+    saved_dates = cur.fetchall()
+    date = max(saved_dates)[0].split("-")
+    from_date = datetime.date(int(date[0]),int(date[1]),int(date[2]))
+    return conn, cur, saved_dates, from_date
 
 def main():
-    conn,cur, alinmis_veriler = baslangic_islemleri()
-    #print (alinmis_veriler)
-    bugun=datetime.date.today()
-    date =max(alinmis_veriler)[0].split("-")
-    fromdate = datetime.date(int(date[0]),int(date[1]),int(date[2]))
+    conn, cur, saved_dates, fromdate = check_db_exists()
     fromdate = datetime.date(2015,12,1)
-    while fromdate != bugun:
-        islenen_tarih =(str(fromdate),)
-        if (fromdate.weekday()) <5 and (islenen_tarih not in alinmis_veriler):#haftasonu değil ise
-            print (islenen_tarih)
-            df, status = veri_al(fromdate)
+    today = datetime.date.today()
+    while fromdate != today:
+        date_to_save =(str(fromdate),)
+        print("islenen tarih",date_to_save)
+        if (fromdate.weekday()) <5 and (date_to_save not in saved_dates):
+            print (date_to_save)
+            df, status = get_data(fromdate)
             if status == 200:
-                kolon_isimlerini_degistir(df)
-                df.to_sql("bultenverileri",conn, if_exists="append", index = False)
-                dosya_url,zip_dosya_yeri, csv_dosya_adi = bulten_veri_url_olustur(fromdate)  
-                cur.execute("insert into 'alinan_veriler'(tarih, durum) values (?, ?)",
-                            ((islenen_tarih[0],1)))
+                alter_column_names(df)
+                df.to_sql("bist", conn, if_exists = "append", index = False)
+                cur.execute("insert into 'saved_values'(date, status) values (?, ?)",
+                            ((date_to_save[0],1)))
                 conn.commit()
-                alinmis_veriler.append(islenen_tarih)
+                saved_dates.append(date_to_save)
             else:
-                cur.execute("insert into 'alinan_veriler'(tarih, durum) values (?, ?)",
-                            ((islenen_tarih[0],0)))
+                cur.execute("insert into 'saved_values'(date, status) values (?, ?)",
+                            ((date_to_save[0],0)))
                 conn.commit()                
-        fromdate+= datetime.timedelta(days=1)
-        # Sonraki gune geç
+        fromdate += datetime.timedelta(days=1)
     cur.close()
 
 
