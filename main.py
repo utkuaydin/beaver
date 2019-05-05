@@ -1,17 +1,19 @@
 import os
 import time
 import queue
+import datetime
 
 from data import BistDataHandler
 from strategy import BuyAndHoldStrategy
+from portfolio import NaivePortfolio
 
 events = queue.Queue()
-symbols = ['ASELS.E']
+symbols = ['ASELS.E', 'FENER.E', 'GSRAY.E']
 csv_dir = os.getcwd() + '/data/bist/symbols/'
 
 bars = BistDataHandler(events, csv_dir, symbols)
 strategy = BuyAndHoldStrategy(bars, events)
-# portfolio = Portfolio()
+portfolio = NaivePortfolio(bars, events, datetime.date(2015, 12, 1))
 # broker = ExecutionHandler()
 
 passed_days = 1
@@ -31,7 +33,7 @@ while True:
             if event is not None:
                 if event.type == 'MARKET':
                     strategy.calculate_signals(event)
-                    # portfolio.update_time_index(event)
+                    portfolio.update_time_index(event)
                 elif event.type == 'SIGNAL':
                     pass
                     # portfolio.update_signal(event)
