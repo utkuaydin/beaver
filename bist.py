@@ -85,7 +85,6 @@ def main():
     today = datetime.date.today()
     while fromdate != today:
         date_to_save =(str(fromdate),)
-        print("islenen tarih",date_to_save)
         if (fromdate.weekday()) <5 and (date_to_save not in saved_dates):
             print (date_to_save)
             df, status = get_data(fromdate)
