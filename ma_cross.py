@@ -42,7 +42,7 @@ class MarketOnClosePortfolio(Portfolio):
 
     def generate_positions(self):
         positions = pd.DataFrame(index=self.signals.index).fillna(0.0)
-        positions[self.symbol] = 100 * self.signals['signal']  # This strategy buys 100 shares
+        positions[self.symbol] = self.signals['signal'] * self.bars['Close']
         return positions
 
     def backtest_portfolio(self):
@@ -60,8 +60,11 @@ class MarketOnClosePortfolio(Portfolio):
 
 def run():
     symbol = sys.argv[1] if len(sys.argv) > 1 else 'ASELS.E'
+    capital = float(sys.argv[2] if len(sys.argv) > 2 else 100000.0)
+
     con = sqlite3.connect('{}/data/bist.db'.format(os.getcwd()))
-    query = "SELECT TARIH AS 'Date', ACILIS_FIYATI AS 'Open', KAPANIS_FIYATI AS 'Close' FROM data WHERE ISLEM__KODU=? AND GECICI_DURDURMA=0 ORDER BY TARIH"
+    query = '''SELECT TARIH AS 'Date', ACILIS_FIYATI AS 'Open', KAPANIS_FIYATI AS 'Close'
+               FROM data WHERE ISLEM__KODU=? AND GECICI_DURDURMA=0 ORDER BY TARIH'''
 
     bars = pd.read_sql_query(query, con=con, params=[symbol])
     bars['Date'] = pd.to_datetime(bars['Date'])
@@ -70,10 +73,10 @@ def run():
     mac = MovingAverageCrossStrategy(symbol, bars)
     signals = mac.generate_signals()
 
-    portfolio = MarketOnClosePortfolio(symbol, bars, signals, initial_capital=100000.0)
+    portfolio = MarketOnClosePortfolio(symbol, bars, signals, initial_capital=capital)
     returns = portfolio.backtest_portfolio()
 
-    returns.tail(10)
+    print(returns.tail(10))
 
     fig = plt.figure(figsize=(16, 8))
 
