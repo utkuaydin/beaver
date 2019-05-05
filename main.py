@@ -13,6 +13,8 @@ bars = BistDataHandler(events, csv_dir, symbols)
 # portfolio = Portfolio()
 # broker = ExecutionHandler()
 
+passed_days = 1
+
 while True:
     if bars.continue_backtest:
         bars.update_bars()
@@ -39,6 +41,7 @@ while True:
                 elif event.type == 'FILL':
                     pass
                     # portfolio.update_fill(event)
-    latest_bars = bars.get_latest_bars('ASELS.E')
-    print(latest_bars)
+    latest_bars = bars.get_latest_bars('ASELS.E', passed_days)
+    print(latest_bars['CLOSING PRICE'])
+    passed_days += 1
     time.sleep(1)

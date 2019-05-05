@@ -59,17 +59,17 @@ class BistDataHandler(DataHandler):
             else:
                 index.union(self.symbol_data[symbol].index)
 
-            self.latest_symbol_data[symbol] = []
+            self.latest_symbol_data[symbol] = pd.DataFrame(columns=self.symbol_data[symbol].columns)
 
         for symbol in self.symbol_list:
             self.symbol_data[symbol] = self.symbol_data[symbol].reindex(index=index, method='pad').iterrows()
 
     def _get_new_bar(self, symbol):
-        for bar in self.symbol_data[symbol]:
+        for index, bar in self.symbol_data[symbol]:
             yield bar
 
     def get_latest_bars(self, symbol, n=1):
-        return self.latest_symbol_data[symbol][-n:]
+        return self.latest_symbol_data[symbol].tail(n)
 
     def update_bars(self):
         for symbol in self.symbol_list:
@@ -79,6 +79,6 @@ class BistDataHandler(DataHandler):
                 self.continue_backtest = False
             else:
                 if bar is not None:
-                    self.latest_symbol_data[symbol].append(bar)
+                    self.latest_symbol_data[symbol] = self.latest_symbol_data[symbol].append(bar)
 
         self.events.put(MarketEvent())
