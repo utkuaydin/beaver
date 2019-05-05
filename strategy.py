@@ -1,3 +1,9 @@
+"""
+Module for creating signals after analyzing the market data. Customized for the
+project after learning about event-driven backtesting from QuantStart. See:
+https://www.quantstart.com/articles/Event-Driven-Backtesting-with-Python-Part-IV
+"""
+
 from abc import ABCMeta, abstractmethod
 
 from event import SignalEvent
