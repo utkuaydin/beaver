@@ -3,13 +3,14 @@ import time
 import queue
 
 from data import BistDataHandler
+from strategy import BuyAndHoldStrategy
 
 events = queue.Queue()
 symbols = ['ASELS.E']
 csv_dir = os.getcwd() + '/data/bist/symbols/'
 
 bars = BistDataHandler(events, csv_dir, symbols)
-# strategy = Strategy()
+strategy = BuyAndHoldStrategy(bars, events)
 # portfolio = Portfolio()
 # broker = ExecutionHandler()
 
@@ -29,8 +30,7 @@ while True:
         else:
             if event is not None:
                 if event.type == 'MARKET':
-                    pass
-                    # strategy.calculate_signals(event)
+                    strategy.calculate_signals(event)
                     # portfolio.update_time_index(event)
                 elif event.type == 'SIGNAL':
                     pass
