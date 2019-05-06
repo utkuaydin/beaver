@@ -1,7 +1,7 @@
 """
 Module for position tracking and order management. Customized for the
 project after learning about event-driven backtesting from QuantStart. See:
-https://www.quantstart.com/articles/Event-Driven-Backtesting-with-Python-Part-IV
+https://www.quantstart.com/articles/Event-Driven-Backtesting-with-Python-Part-V
 """
 
 import pandas as pd
