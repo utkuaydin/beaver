@@ -32,6 +32,10 @@ class SignalEvent(Event):
         self.datetime = datetime
         self.signal_type = signal_type
 
+    def __str__(self):
+        template = "Signal: Symbol={}, Type={}, Date={}"
+        return template.format(self.symbol, self.signal_type, self.datetime)
+
 
 class OrderEvent(Event):
     """
