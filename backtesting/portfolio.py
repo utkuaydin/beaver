@@ -175,7 +175,7 @@ class NaivePortfolio(Portfolio):
             direction = -1
 
         # Update holdings list with new quantities
-        cost = self.bars.get_latest_bars(fill.symbol)[0][5]  # Close price
+        cost = self.bars.get_latest_bars(fill.symbol).iloc[0]['CLOSING PRICE']  # Close price
         cost = direction * cost * fill.quantity
         self.current_holdings[fill.symbol] += cost
         self.current_holdings['commission'] += fill.commission
