@@ -9,7 +9,7 @@ import pandas as pd
 
 from abc import ABCMeta, abstractmethod
 
-from event import MarketEvent
+from backtesting.event import MarketEvent
 
 
 class DataHandler(object):

@@ -3,9 +3,9 @@ import time
 import queue
 import datetime
 
-from data import BistDataHandler
-from strategy import BuyAndHoldStrategy
-from portfolio import NaivePortfolio
+from backtesting.data import BistDataHandler
+from backtesting.strategy import BuyAndHoldStrategy
+from backtesting.portfolio import NaivePortfolio
 
 events = queue.Queue()
 symbols = ['ASELS.E', 'FENER.E', 'GSRAY.E']

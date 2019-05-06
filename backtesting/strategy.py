@@ -6,7 +6,7 @@ https://www.quantstart.com/articles/Event-Driven-Backtesting-with-Python-Part-IV
 
 from abc import ABCMeta, abstractmethod
 
-from event import SignalEvent
+from backtesting.event import SignalEvent
 
 
 class Strategy(object):
