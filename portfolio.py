@@ -8,11 +8,13 @@ import pandas as pd
 
 from abc import ABCMeta, abstractmethod
 
+from event import OrderEvent
+
 
 class Portfolio(object):
     """
-    The Portfolio class handles the positions and market
-    value of all instruments at a resolution of a "bar".
+    The Portfolio class handles the positions and
+    market value of all instruments at every bar.
     """
 
     __metaclass__ = ABCMeta
@@ -59,6 +61,7 @@ class NaivePortfolio(Portfolio):
         self.symbol_list = self.bars.symbol_list
         self.start_date = pd.to_datetime(start_date)
         self.initial_capital = initial_capital
+        self.equity_curve = None
 
         self.all_positions = self.construct_all_positions()
         self.current_positions = {key: value for key, value in [(symbol, 0) for symbol in self.symbol_list]}
@@ -135,3 +138,102 @@ class NaivePortfolio(Portfolio):
 
         # Append the current holdings
         self.all_holdings.append(holdings)
+
+    def update_positions_from_fill(self, fill):
+        """
+        Takes a FiltEvent object and updates the position matrix
+        to reflect the new position.
+
+        Parameters:
+        fill - The FillEvent object to update the positions with.
+        """
+        # Check whether the fill is a buy or sell
+        direction = 0
+
+        if fill.direction == 'BUY':
+            direction = 1
+        if fill.direction == 'SELL':
+            direction = -1
+
+        # Update positions list with new quantities
+        self.current_positions[fill.symbol] += direction * fill.quantity
+
+    def update_holdings_from_fill(self, fill):
+        """
+        Takes a FillEvent object and updates the holdings matrix
+        to reflect the holdings value.
+
+        Parameters:
+        fill - The FillEvent object to update the holdings with.
+        """
+        # Check whether the fill is a buy or sell
+        direction = 0
+
+        if fill.direction == 'BUY':
+            direction = 1
+        if fill.direction == 'SELL':
+            direction = -1
+
+        # Update holdings list with new quantities
+        cost = self.bars.get_latest_bars(fill.symbol)[0][5]  # Close price
+        cost = direction * cost * fill.quantity
+        self.current_holdings[fill.symbol] += cost
+        self.current_holdings['commission'] += fill.commission
+        self.current_holdings['cash'] -= (cost + fill.commission)
+        self.current_holdings['total'] -= (cost + fill.commission)
+
+    def update_fill(self, event):
+        """
+        Updates the portfolio current positions and holdings
+        from a FillEvent.
+        """
+        if event.type == 'FILL':
+            self.update_positions_from_fill(event)
+            self.update_holdings_from_fill(event)
+
+    def generate_naive_order(self, signal):
+        """
+        Simply transacts an OrderEvent object as a constant
+        quantity sizing of the signal object, without risk
+        management or position sizing considerations.
+
+        Parameters:
+        signal - The SignalEvent signal information.
+        """
+        symbol = signal.symbol
+        direction = signal.signal_type
+
+        market_quantity = 100
+        current_quantity = self.current_positions[symbol]
+        order_type = 'MARKET'
+
+        if direction == 'LONG' and current_quantity == 0:
+            return OrderEvent(symbol, order_type, market_quantity, 'BUY')
+        if direction == 'SHORT' and current_quantity == 0:
+            return OrderEvent(symbol, order_type, market_quantity, 'SELL')
+        if direction == 'EXIT' and current_quantity > 0:
+            return OrderEvent(symbol, order_type, abs(current_quantity), 'SELL')
+        if direction == 'EXIT' and current_quantity < 0:
+            return OrderEvent(symbol, order_type, abs(current_quantity), 'BUY')
+
+        return None
+
+    def update_signal(self, event):
+        """
+        Acts on a SignalEvent to generate new
+        orders based on the portfolio logic.
+        """
+        if event.type == 'SIGNAL':
+            order_event = self.generate_naive_order(event)
+            self.events.put(order_event)
+
+    def create_equity_curve(self):
+        """
+        Creates a pandas DataFrame from the all_holdings
+        list of dictionaries.
+        """
+        curve = pd.DataFrame(self.all_holdings)
+        curve.set_index('datetime', inplace=True)
+        curve['returns'] = curve['total'].pct_change()
+        curve['equity_curve'] = (1.0 + curve['returns']).cumprod()
+        self.equity_curve = curve

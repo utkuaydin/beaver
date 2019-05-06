@@ -35,14 +35,12 @@ while True:
                     strategy.calculate_signals(event)
                     portfolio.update_time_index(event)
                 elif event.type == 'SIGNAL':
-                    pass
-                    # portfolio.update_signal(event)
+                    portfolio.update_signal(event)
                 elif event.type == 'ORDER':
                     pass
                     # broker.execute_order(event)
                 elif event.type == 'FILL':
-                    pass
-                    # portfolio.update_fill(event)
+                    portfolio.update_fill(event)
     latest_bars = bars.get_latest_bars('ASELS.E', passed_days)
     print(latest_bars['CLOSING PRICE'])
     passed_days += 1
