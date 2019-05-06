@@ -4,6 +4,7 @@ import queue
 import datetime
 
 from backtesting.data import BistDataHandler
+from backtesting.execution import SimulatedExecutionHandler
 from backtesting.strategy import BuyAndHoldStrategy
 from backtesting.portfolio import NaivePortfolio
 
@@ -14,7 +15,7 @@ csv_dir = os.getcwd() + '/data/bist/symbols/'
 bars = BistDataHandler(events, csv_dir, symbols)
 strategy = BuyAndHoldStrategy(bars, events)
 portfolio = NaivePortfolio(bars, events, datetime.date(2015, 12, 1))
-# broker = ExecutionHandler()
+broker = SimulatedExecutionHandler(events)
 
 passed_days = 1
 
@@ -37,8 +38,7 @@ while True:
                 elif event.type == 'SIGNAL':
                     portfolio.update_signal(event)
                 elif event.type == 'ORDER':
-                    pass
-                    # broker.execute_order(event)
+                    broker.execute_order(event)
                 elif event.type == 'FILL':
                     portfolio.update_fill(event)
     latest_bars = bars.get_latest_bars('ASELS.E', passed_days)
