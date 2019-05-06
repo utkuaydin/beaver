@@ -5,19 +5,18 @@ import datetime
 
 from backtesting.data import BistDataHandler
 from backtesting.execution import SimulatedExecutionHandler
-from backtesting.strategy import BuyAndHoldStrategy
 from backtesting.portfolio import NaivePortfolio
+
+from sma import SimpleMovingAverageStrategy
 
 events = queue.Queue()
 symbols = ['ASELS.E', 'FENER.E', 'GSRAY.E']
 csv_dir = os.getcwd() + '/data/bist/symbols/'
 
 bars = BistDataHandler(events, csv_dir, symbols)
-strategy = BuyAndHoldStrategy(bars, events)
+strategy = SimpleMovingAverageStrategy(bars, events, 100, 40)
 portfolio = NaivePortfolio(bars, events, datetime.date(2015, 12, 1))
 broker = SimulatedExecutionHandler(events)
-
-passed_days = 1
 
 while True:
     if bars.continue_backtest:
@@ -37,11 +36,8 @@ while True:
                     portfolio.update_time_index(event)
                 elif event.type == 'SIGNAL':
                     portfolio.update_signal(event)
+                    print(event)
                 elif event.type == 'ORDER':
                     broker.execute_order(event)
                 elif event.type == 'FILL':
                     portfolio.update_fill(event)
-    latest_bars = bars.get_latest_bars('ASELS.E', passed_days)
-    print(latest_bars['CLOSING PRICE'])
-    passed_days += 1
-    time.sleep(1)
