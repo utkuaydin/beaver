@@ -7,14 +7,14 @@ from backtesting.data import BistDataHandler
 from backtesting.execution import SimulatedExecutionHandler
 from backtesting.portfolio import NaivePortfolio
 
-from sma import SimpleMovingAverageStrategy
+from ssma import SimplerSimpleMovingAverageStrategy
 
 events = queue.Queue()
 symbols = ['ASELS.E', 'FENER.E', 'GSRAY.E']
 csv_dir = os.getcwd() + '/data/bist/symbols/'
 
 bars = BistDataHandler(events, csv_dir, symbols)
-strategy = SimpleMovingAverageStrategy(bars, events, 100, 40)
+strategy = SimplerSimpleMovingAverageStrategy(bars, events, 30)
 portfolio = NaivePortfolio(bars, events, datetime.date(2015, 12, 1))
 broker = SimulatedExecutionHandler(events)
 
