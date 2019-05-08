@@ -277,36 +277,30 @@ class NaiveGreedyPortfolio(Portfolio):
         self.current_holdings = self.construct_current_holdings()
 
     def construct_all_positions(self):
-
         dictionary = {key: value for key, value in [(symbol, 0) for symbol in self.symbol_list]}
         dictionary['datetime'] = self.start_date
         return [dictionary]
 
     def construct_all_holdings(self):
-
         dictionary = {key: value for key, value in [(symbol, 0.0) for symbol in self.symbol_list]}
         dictionary['datetime'] = self.start_date
-        each_symbol_capital = self.initial_capital / len(self.symbol_list)
-        dictionary.update(
-            {key: value for key, value in [(symbol + " cash", each_symbol_capital) for symbol in self.symbol_list]})
-        dictionary['cash'] = self.initial_capital  # spare cash in the account after any purchases
+        capital_per_sym = self.initial_capital / len(self.symbol_list)
+        dictionary['cash'] = {key: value for key, value in [(symbol, capital_per_sym) for symbol in self.symbol_list]}
+        dictionary['remaining_cash'] = self.initial_capital  # spare cash in the account after any purchases
         dictionary['commission'] = 0.0  # the cumulative commission accrued
         dictionary['total'] = self.initial_capital  # the total account equity including cash and any open positions
         return [dictionary]
 
     def construct_current_holdings(self):
-
         dictionary = {key: value for key, value in [(symbol, 0.0) for symbol in self.symbol_list]}
-        each_symbol_capital = self.initial_capital / len(self.symbol_list)
-        dictionary.update(
-            {key: value for key, value in [(symbol + " cash", each_symbol_capital) for symbol in self.symbol_list]})
-        dictionary['cash'] = self.initial_capital
+        capital_per_sym = self.initial_capital / len(self.symbol_list)
+        dictionary['cash'] = {key: value for key, value in [(symbol, capital_per_sym) for symbol in self.symbol_list]}
+        dictionary['remaining_cash'] = self.initial_capital
         dictionary['commission'] = 0.0
         dictionary['total'] = self.initial_capital
         return dictionary
 
     def update_time_index(self, event):
-
         bars = {}
         for symbol in self.symbol_list:
             bars[symbol] = self.bars.get_latest_bars(symbol)
@@ -324,12 +318,11 @@ class NaiveGreedyPortfolio(Portfolio):
         # Update holdings
         holdings = {key: value for key, value in [(symbol, 0) for symbol in self.symbol_list]}
         holdings['datetime'] = pd.to_datetime(bars[self.symbol_list[0]].iloc[0].name)
-        holdings.update(
-            {key: value for key, value in
-             [(symbol + " cash", self.current_holdings[symbol + " cash"]) for symbol in self.symbol_list]})
-        holdings['cash'] = self.current_holdings['cash']
+        cash_per_symbol = [(symbol, self.current_holdings['cash'][symbol]) for symbol in self.symbol_list]
+        holdings['cash'] = {key: value for key, value in cash_per_symbol}
+        holdings['remaining_cash'] = self.current_holdings['remaining_cash']
         holdings['commission'] = self.current_holdings['commission']
-        holdings['total'] = self.current_holdings['cash']
+        holdings['total'] = self.current_holdings['remaining_cash']
 
         for symbol in self.symbol_list:
             # Approximation to the real value
@@ -353,7 +346,6 @@ class NaiveGreedyPortfolio(Portfolio):
         self.current_positions[fill.symbol] += direction * fill.quantity
 
     def update_holdings_from_fill(self, fill):
-
         # Check whether the fill is a buy or sell
         direction = 0
 
@@ -367,13 +359,12 @@ class NaiveGreedyPortfolio(Portfolio):
         cost = direction * cost * fill.quantity
         self.current_holdings[fill.symbol] += cost
         self.current_holdings['commission'] += fill.commission
-        self.current_holdings[fill.symbol + " cash"] -= (cost + fill.commission)
-        print("ASELS CASH" , self.current_holdings[fill.symbol + " cash"])
-        self.current_holdings['cash'] -= (cost + fill.commission)
+        self.current_holdings['cash'][fill.symbol] -= (cost + fill.commission)
+        print("ASELS", self.current_holdings['cash'][fill.symbol])
+        self.current_holdings['remaining_cash'] -= (cost + fill.commission)
         self.current_holdings['total'] -= (cost + fill.commission)
 
     def update_fill(self, event):
-
         if event.type == 'FILL':
             self.update_positions_from_fill(event)
             self.update_holdings_from_fill(event)
@@ -383,7 +374,7 @@ class NaiveGreedyPortfolio(Portfolio):
         symbol = signal.symbol
         direction = signal.signal_type
         close_price = self.bars.get_latest_bars(symbol).iloc[0]['CLOSING PRICE']
-        symbol_cash = self.current_holdings[symbol + " cash"]
+        symbol_cash = self.current_holdings['cash'][symbol]
         market_quantity = symbol_cash / close_price
         current_quantity = self.current_positions[symbol]
         order_type = 'MARKET'
