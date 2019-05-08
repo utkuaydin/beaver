@@ -22,6 +22,7 @@ while True:
     if bars.continue_backtest:
         bars.update_bars()
     else:
+        print('\n'.join(['{}: {}'.format(column, value) for column, value in portfolio.output_summary_stats()]))
         break
 
     while True:
