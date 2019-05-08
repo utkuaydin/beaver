@@ -4,7 +4,7 @@ import datetime
 
 from backtesting.data import BistDataHandler
 from backtesting.execution import SimulatedExecutionHandler
-from backtesting.portfolio import NaivePortfolio, NaiveGreedyPortfolio
+from naive_greedy_portfolio import NaiveGreedyPortfolio
 
 from sma import SimpleMovingAverageStrategy
 
