@@ -12,7 +12,8 @@ events = queue.Queue()
 symbols = ['ASELS.E', 'FENER.E', 'GSRAY.E']
 csv_dir = os.getcwd() + '/data/bist/symbols/'
 
-bars = BistDataHandler(events, csv_dir, symbols)
+start_date = datetime.date(2017, 1, 1)
+bars = BistDataHandler(events, csv_dir, symbols, start_date)
 strategy = SimpleMovingAverageStrategy(bars, events, 100, 40)
 portfolio = NaiveGreedyPortfolio(bars, events, datetime.date(2015, 12, 1))
 broker = SimulatedExecutionHandler(events)
