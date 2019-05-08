@@ -9,7 +9,7 @@ from naive_greedy_portfolio import NaiveGreedyPortfolio
 from sma import SimpleMovingAverageStrategy
 
 events = queue.Queue()
-symbols = ['ASELS.E', 'FENER.E', 'GSRAY.E']
+symbols = ['THYAO.E', 'PGSUS.E', 'GARAN.E']
 csv_dir = os.getcwd() + '/data/bist/symbols/'
 
 start_date = datetime.date(2017, 1, 1)
