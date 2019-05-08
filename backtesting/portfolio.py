@@ -370,7 +370,6 @@ class NaiveGreedyPortfolio(Portfolio):
             self.update_holdings_from_fill(event)
 
     def generate_naive_order(self, signal):
-
         symbol = signal.symbol
         direction = signal.signal_type
         close_price = self.bars.get_latest_bars(symbol).iloc[0]['CLOSING PRICE']
@@ -391,13 +390,11 @@ class NaiveGreedyPortfolio(Portfolio):
         return None
 
     def update_signal(self, event):
-
         if event.type == 'SIGNAL':
             order_event = self.generate_naive_order(event)
             self.events.put(order_event)
 
     def create_equity_curve(self):
-
         curve = pd.DataFrame(self.all_holdings)
         curve.set_index('datetime', inplace=True)
         curve['returns'] = curve['total'].pct_change()
@@ -405,7 +402,6 @@ class NaiveGreedyPortfolio(Portfolio):
         self.equity_curve = curve
 
     def output_summary_stats(self):
-
         self.create_equity_curve()
 
         total_return = self.equity_curve['equity_curve'][-1]
