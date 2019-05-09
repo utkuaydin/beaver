@@ -5,8 +5,10 @@ from backtesting.event import OrderEvent
 from backtesting.performance import create_sharpe_ratio, create_drawdowns
 from backtesting.portfolio import Portfolio
 
+np.random.seed(101)
 
-class OptimizedNaiveGreedyPortfolio(Portfolio):
+
+class OptimizedGreedyPortfolio(Portfolio):
     def __init__(self, bars, events, start_date, initial_capital=100000.0):
         self.bars = bars
         self.events = events
@@ -18,37 +20,14 @@ class OptimizedNaiveGreedyPortfolio(Portfolio):
         self.all_positions = self.construct_all_positions()
         self.current_positions = {key: value for key, value in [(symbol, 0) for symbol in self.symbol_list]}
 
+        self.optimized_ratios = self.calculate_optimized_ratios()
         self.all_holdings = self.construct_all_holdings()
-        self.current_holdings = self.construct_current_holdings()
+        self.current_holdings = self.construct_initial_holdings()
 
     def construct_all_positions(self):
         dictionary = {key: value for key, value in [(symbol, 0) for symbol in self.symbol_list]}
         dictionary['datetime'] = self.start_date
         return [dictionary]
-
-    def simulate(self, stocks):
-        returns = np.log(stocks / stocks.shift(1))
-
-        num_ports = 5000  # Number of portfolios
-        all_weights = np.zeros((num_ports, len(stocks.columns)))
-        ret_arr = np.zeros(num_ports)
-        vol_arr = np.zeros(num_ports)
-        sharpe_arr = np.zeros(num_ports)
-
-        for index in range(num_ports):
-            # Assign random weights to stocks
-            weights = np.array(np.random.random(len(self.symbol_list)))
-            weights = weights / np.sum(weights)
-            all_weights[index, :] = weights
-
-            # Calculate the expected return
-            ret_arr[index] = np.sum(returns.mean() * weights * 252)
-            # Calculate volatility using linear algebra
-            vol_arr[index] = np.sqrt(np.dot(weights.T, np.dot(returns.cov() * 252, weights)))
-            # Calculate Sharpe Ratio
-            sharpe_arr[index] = ret_arr[index] / vol_arr[index]
-
-        return all_weights, ret_arr, vol_arr, sharpe_arr
 
     def get_opt_alloc(self, stocks):
         all_weights, ret_arr, vol_arr, sharpe_arr = self.simulate(stocks)
@@ -62,29 +41,36 @@ class OptimizedNaiveGreedyPortfolio(Portfolio):
 
         return all_weights[max_sr_pos]
 
-    def construct_all_holdings(self):
+    def calculate_optimized_ratios(self):
         stocks = []
         for symbol in self.symbol_list:
             stocks.append(self.bars.historical_symbol_data[symbol]['CLOSING PRICE'])
         stocks = pd.concat(stocks, axis=1)
         stocks.columns = self.symbol_list
         hist_alloc = self.get_opt_alloc(stocks)
+        return hist_alloc
 
-        print(hist_alloc)
-
+    def construct_all_holdings(self):
+        opt_ratios = self.optimized_ratios
         dictionary = {key: value for key, value in [(symbol, 0.0) for symbol in self.symbol_list]}
         dictionary['datetime'] = self.start_date
-        capital_per_sym = self.initial_capital / len(self.symbol_list)
-        dictionary['cash'] = {key: value for key, value in [(symbol, capital_per_sym) for symbol in self.symbol_list]}
+        capital_ratio_per_sym = dict(zip(self.symbol_list, opt_ratios))
+        dictionary['cash'] = dict()
+        for key, value in capital_ratio_per_sym.items():
+            dictionary['cash'][key] = self.initial_capital * value
         dictionary['remaining_cash'] = self.initial_capital  # spare cash in the account after any purchases
         dictionary['commission'] = 0.0  # the cumulative commission accrued
         dictionary['total'] = self.initial_capital  # the total account equity including cash and any open positions
         return [dictionary]
 
-    def construct_current_holdings(self):
+    def construct_initial_holdings(self):
+        opt_ratios = self.optimized_ratios
         dictionary = {key: value for key, value in [(symbol, 0.0) for symbol in self.symbol_list]}
-        capital_per_sym = self.initial_capital / len(self.symbol_list)
-        dictionary['cash'] = {key: value for key, value in [(symbol, capital_per_sym) for symbol in self.symbol_list]}
+        capital_ratio_per_sym = dict(zip(self.symbol_list, opt_ratios))
+        dictionary['cash'] = dict()
+        for key, value in capital_ratio_per_sym.items():
+            dictionary['cash'][key] = self.initial_capital * value
+        print('Cash:', dictionary['cash'])
         dictionary['remaining_cash'] = self.initial_capital
         dictionary['commission'] = 0.0
         dictionary['total'] = self.initial_capital
@@ -150,7 +136,7 @@ class OptimizedNaiveGreedyPortfolio(Portfolio):
         self.current_holdings[fill.symbol] += cost
         self.current_holdings['commission'] += fill.commission
         self.current_holdings['cash'][fill.symbol] -= (cost + fill.commission)
-        print("ASELS", self.current_holdings['cash'][fill.symbol])
+        print(fill.symbol, self.current_holdings['cash'][fill.symbol])
         self.current_holdings['remaining_cash'] -= (cost + fill.commission)
         self.current_holdings['total'] -= (cost + fill.commission)
 
@@ -206,3 +192,24 @@ class OptimizedNaiveGreedyPortfolio(Portfolio):
                  ("Max Drawdown", "%0.2f%%" % (max_dd * 100.0)),
                  ("Drawdown Duration", "%d" % dd_duration)]
         return stats
+
+    @staticmethod
+    def simulate(stocks):
+        returns = np.log(stocks / stocks.shift(1))
+
+        num_ports = 5000  # Number of portfolios
+        all_weights = np.zeros((num_ports, len(stocks.columns)))
+        ret_arr = np.zeros(num_ports)
+        vol_arr = np.zeros(num_ports)
+        sharpe_arr = np.zeros(num_ports)
+
+        for index in range(num_ports):
+            weights = np.array(np.random.random(len(stocks.columns)))
+            weights = weights / np.sum(weights)
+            all_weights[index, :] = weights
+
+            ret_arr[index] = np.sum(returns.mean() * weights * 252)
+            vol_arr[index] = np.sqrt(np.dot(weights.T, np.dot(returns.cov() * 252, weights)))
+            sharpe_arr[index] = ret_arr[index] / vol_arr[index]
+
+        return all_weights, ret_arr, vol_arr, sharpe_arr

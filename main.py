@@ -4,18 +4,18 @@ import datetime
 
 from backtesting.data import BistDataHandler
 from backtesting.execution import SimulatedExecutionHandler
-from opt_naive_greedy_portfolio import OptimizedNaiveGreedyPortfolio
+from optimized_greedy_portfolio import OptimizedGreedyPortfolio
 
 from sma import SimpleMovingAverageStrategy
 
 events = queue.Queue()
-symbols = ['ASELS.E', 'FENER.E', 'GSRAY.E']
+symbols = ['THYAO.E', 'PGSUS.E', 'ULKER.E', 'GARAN.E']
 csv_dir = os.getcwd() + '/data/bist/symbols/'
 
 start_date = datetime.date(2017, 1, 1)
 bars = BistDataHandler(events, csv_dir, symbols, start_date)
 strategy = SimpleMovingAverageStrategy(bars, events, 100, 40)
-portfolio = OptimizedNaiveGreedyPortfolio(bars, events, datetime.date(2015, 12, 1))
+portfolio = OptimizedGreedyPortfolio(bars, events, datetime.date(2015, 12, 1))
 broker = SimulatedExecutionHandler(events)
 
 while True:

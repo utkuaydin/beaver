@@ -18,7 +18,7 @@ class NaiveGreedyPortfolio(Portfolio):
         self.current_positions = {key: value for key, value in [(symbol, 0) for symbol in self.symbol_list]}
 
         self.all_holdings = self.construct_all_holdings()
-        self.current_holdings = self.construct_current_holdings()
+        self.current_holdings = self.construct_initial_holdings()
 
     def construct_all_positions(self):
         dictionary = {key: value for key, value in [(symbol, 0) for symbol in self.symbol_list]}
@@ -35,7 +35,7 @@ class NaiveGreedyPortfolio(Portfolio):
         dictionary['total'] = self.initial_capital  # the total account equity including cash and any open positions
         return [dictionary]
 
-    def construct_current_holdings(self):
+    def construct_initial_holdings(self):
         dictionary = {key: value for key, value in [(symbol, 0.0) for symbol in self.symbol_list]}
         capital_per_sym = self.initial_capital / len(self.symbol_list)
         dictionary['cash'] = {key: value for key, value in [(symbol, capital_per_sym) for symbol in self.symbol_list]}
