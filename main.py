@@ -7,6 +7,7 @@ from backtesting.execution import SimulatedExecutionHandler
 from optimized_greedy_portfolio import OptimizedGreedyPortfolio
 
 from sma import SimpleMovingAverageStrategy
+from export import export_all
 
 events = queue.Queue()
 symbols = ['THYAO.E', 'PGSUS.E', 'ULKER.E', 'GARAN.E']
@@ -23,6 +24,7 @@ while True:
         bars.update_bars()
     else:
         print('\n'.join(['{}: {}'.format(column, value) for column, value in portfolio.output_summary_stats()]))
+        export_all(bars, portfolio, broker)
         break
 
     while True:
