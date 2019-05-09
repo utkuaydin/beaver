@@ -42,12 +42,13 @@ class OrderEvent(Event):
     Triggered by Portfolio after it assesses signals,
     for sending the order to an execution system.
     """
-    def __init__(self, symbol, order_type, quantity, direction):
+    def __init__(self, symbol, order_type, quantity, direction, datetime):
         self.type = 'ORDER'
         self.symbol = symbol
         self.order_type = order_type
         self.quantity = quantity
         self.direction = direction
+        self.datetime = datetime
 
     def __str__(self):
         template = "Order: Symbol={}, Type={}, Quantity={}, Direction={}"

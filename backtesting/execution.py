@@ -49,7 +49,7 @@ class SimulatedExecutionHandler(ExecutionHandler):
     handler.
     """
 
-    def __init__(self, events):
+    def __init__(self, events, symbol_list):
         """
         Initialises the handler, setting the event queues
         up internally.
@@ -58,6 +58,7 @@ class SimulatedExecutionHandler(ExecutionHandler):
         events - The Queue of Event objects.
         """
         self.events = events
+        self.history = {symbol: [] for symbol in symbol_list}
 
     def execute_order(self, event):
         """
@@ -69,5 +70,7 @@ class SimulatedExecutionHandler(ExecutionHandler):
         """
         if event.type == 'ORDER':
             date = datetime.datetime.utcnow()
+            self.history[event.symbol].append({'date': event.datetime, 'qty': event.quantity,
+                                               'direction': event.direction})
             fill_event = FillEvent(date, event.symbol, 'BIST', event.quantity, event.direction, None)
             self.events.put(fill_event)

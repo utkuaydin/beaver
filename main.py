@@ -16,7 +16,7 @@ start_date = datetime.date(2017, 1, 1)
 bars = BistDataHandler(events, csv_dir, symbols, start_date)
 strategy = SimpleMovingAverageStrategy(bars, events, 100, 40)
 portfolio = OptimizedGreedyPortfolio(bars, events, datetime.date(2015, 12, 1))
-broker = SimulatedExecutionHandler(events)
+broker = SimulatedExecutionHandler(events, symbols)
 
 while True:
     if bars.continue_backtest:
