@@ -16,6 +16,7 @@ class OptimizedGreedyPortfolio(Portfolio):
         self.start_date = pd.to_datetime(start_date)
         self.initial_capital = initial_capital
         self.equity_curve = None
+        self.simulation = None
 
         self.all_positions = self.construct_all_positions()
         self.current_positions = {key: value for key, value in [(symbol, 0) for symbol in self.symbol_list]}
@@ -30,7 +31,8 @@ class OptimizedGreedyPortfolio(Portfolio):
         return [dictionary]
 
     def get_opt_alloc(self, stocks):
-        all_weights, ret_arr, vol_arr, sharpe_arr = self.simulate(stocks)
+        self.simulation = self.simulate(stocks)
+        all_weights, ret_arr, vol_arr, sharpe_arr = self.simulation
 
         max_sr_pos = sharpe_arr.argmax()
 
