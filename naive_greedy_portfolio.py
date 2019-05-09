@@ -105,7 +105,6 @@ class NaiveGreedyPortfolio(Portfolio):
         self.current_holdings[fill.symbol] += cost
         self.current_holdings['commission'] += fill.commission
         self.current_holdings['cash'][fill.symbol] -= (cost + fill.commission)
-        print("ASELS", self.current_holdings['cash'][fill.symbol])
         self.current_holdings['remaining_cash'] -= (cost + fill.commission)
         self.current_holdings['total'] -= (cost + fill.commission)
 
@@ -156,7 +155,9 @@ class NaiveGreedyPortfolio(Portfolio):
         sharpe_ratio = create_sharpe_ratio(returns)
         max_dd, dd_duration = create_drawdowns(pnl)
 
-        stats = [("Total Return", "%0.2f%%" % ((total_return - 1.0) * 100.0)),
+        stats = [("Initial Capital", self.initial_capital),
+                 ("Total Holdings", self.current_holdings['total']),
+                 ("Total Return", "%0.2f%%" % ((total_return - 1.0) * 100.0)),
                  ("Sharpe Ratio", "%0.2f" % sharpe_ratio),
                  ("Max Drawdown", "%0.2f%%" % (max_dd * 100.0)),
                  ("Drawdown Duration", "%d" % dd_duration)]
