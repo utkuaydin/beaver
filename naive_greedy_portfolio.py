@@ -39,6 +39,7 @@ class NaiveGreedyPortfolio(Portfolio):
         dictionary = {key: value for key, value in [(symbol, 0.0) for symbol in self.symbol_list]}
         capital_per_sym = self.initial_capital / len(self.symbol_list)
         dictionary['cash'] = {key: value for key, value in [(symbol, capital_per_sym) for symbol in self.symbol_list]}
+        print('Cash:', dictionary['cash'])
         dictionary['remaining_cash'] = self.initial_capital
         dictionary['commission'] = 0.0
         dictionary['total'] = self.initial_capital
