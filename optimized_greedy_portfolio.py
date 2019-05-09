@@ -136,7 +136,6 @@ class OptimizedGreedyPortfolio(Portfolio):
         self.current_holdings[fill.symbol] += cost
         self.current_holdings['commission'] += fill.commission
         self.current_holdings['cash'][fill.symbol] -= (cost + fill.commission)
-        print(fill.symbol, self.current_holdings['cash'][fill.symbol])
         self.current_holdings['remaining_cash'] -= (cost + fill.commission)
         self.current_holdings['total'] -= (cost + fill.commission)
 
