@@ -2,9 +2,11 @@ import datetime
 import pickle
 import os
 
+folder_name = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+
 
 def get_dumps_dir():
-    directory = os.getcwd() + '/data/dumps/' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+    directory = os.getcwd() + '/data/dumps/' + folder_name
 
     try:
         os.makedirs(directory)
@@ -29,3 +31,4 @@ def export_all(data_handler, portfolio, exec_handler, simulation=None):
     if simulation is not None:
         with open(get_dump_filename('simulation'), 'wb') as dump:
             pickle.dump(simulation, dump)
+    print("Dump Folder Name:", folder_name)
