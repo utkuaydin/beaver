@@ -13,6 +13,7 @@ class NaiveGreedyPortfolio(Portfolio):
         self.start_date = pd.to_datetime(start_date)
         self.initial_capital = initial_capital
         self.equity_curve = None
+        self.simulation = None
 
         self.all_positions = self.construct_all_positions()
         self.current_positions = {key: value for key, value in [(symbol, 0) for symbol in self.symbol_list]}
