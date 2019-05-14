@@ -12,8 +12,16 @@ from export import export_all
 from simpler_simple_moving_average import SimplerSimpleMovingAverageStrategy
 
 events = queue.Queue()
-symbols = ['THYAO.E', 'PGSUS.E', 'ULKER.E', 'GARAN.E']
+symbols = []
 csv_dir = os.getcwd() + '/data/bist/symbols/'
+
+while True:
+    symbol = input("Write ticker, or 'c' to continue: ")
+
+    if symbol == "c":
+        break
+
+    symbols.append(symbol + '.E')
 
 start_date = datetime.date(2017, 1, 1)
 bars = BistDataHandler(events, csv_dir, symbols, start_date)
