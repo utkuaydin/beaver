@@ -4,10 +4,12 @@ import datetime
 
 from backtesting.data import BistDataHandler
 from backtesting.execution import SimulatedExecutionHandler
+from naive_greedy_portfolio import NaiveGreedyPortfolio
 from optimized_greedy_portfolio import OptimizedGreedyPortfolio
-
+from simple_moving_average import SimpleMovingAverageStrategy
 from simple_moving_average_ribbon import SimpleMovingAverageRibbonStrategy
 from export import export_all
+from simpler_simple_moving_average import SimplerSimpleMovingAverageStrategy
 
 events = queue.Queue()
 symbols = ['THYAO.E', 'PGSUS.E', 'ULKER.E', 'GARAN.E']
@@ -15,8 +17,32 @@ csv_dir = os.getcwd() + '/data/bist/symbols/'
 
 start_date = datetime.date(2017, 1, 1)
 bars = BistDataHandler(events, csv_dir, symbols, start_date)
-strategy = SimpleMovingAverageRibbonStrategy(bars, events, [10, 20, 30, 40, 50, 60])
-portfolio = OptimizedGreedyPortfolio(bars, events, datetime.date(2017, 1, 1))
+
+strategies = [
+    SimpleMovingAverageStrategy(bars, events, 40, 100),
+    SimplerSimpleMovingAverageStrategy(bars, events, 40),
+    SimpleMovingAverageRibbonStrategy(bars, events, [10, 20, 30, 40, 50, 60]),
+]
+
+print('''
+Trading strategies:
+1) Simple Moving Average
+2) Simpler SMA
+3) SMA Ribbon
+''')
+
+strategy_choice = input('Pick: ')
+
+print('''
+Pick portfolio strategy:
+1) Greedy
+2) Optimized Greedy
+''')
+
+portfolio_choice = int(input('Pick: '))
+
+strategy = strategies[int(strategy_choice) - 1]
+portfolio = OptimizedGreedyPortfolio(bars, events, datetime.date(2017, 1, 1)) if portfolio_choice == 2 else NaiveGreedyPortfolio(bars, events, datetime.date(2017, 1, 1))
 broker = SimulatedExecutionHandler(events, symbols)
 
 while True:
