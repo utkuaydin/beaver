@@ -32,7 +32,7 @@ start_date = datetime.date(2017, 1, 1)
 bars = BistSQLDataHandler(events, csv_dir, symbols, start_date)
 
 strategies = [
-    SimpleMovingAverageStrategy(bars, events, 40, 100),
+    SimpleMovingAverageStrategy(bars, events, 100, 40),
     SimplerSimpleMovingAverageStrategy(bars, events, 40),
     SimpleMovingAverageRibbonStrategy(bars, events, [10, 20, 30, 40, 50, 60]),
 ]
