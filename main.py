@@ -17,10 +17,14 @@ symbols = []
 csv_dir = os.getcwd() + '/data/bist/symbols/'
 
 while True:
-    symbol = input("Write ticker, or 'c' to continue: ")
+    symbol = input("Write a ticker symbol, or press ENTER to continue: ")
 
-    if symbol == "c":
-        break
+    if symbol == "":
+        if len(symbols) > 0:
+            break
+        else:
+            print("You must give at least one symbol")
+            continue
 
     symbols.append(symbol + '.E')
 
