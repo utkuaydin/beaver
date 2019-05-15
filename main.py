@@ -8,8 +8,9 @@ from naive_greedy_portfolio import NaiveGreedyPortfolio
 from optimized_greedy_portfolio import OptimizedGreedyPortfolio
 from simple_moving_average import SimpleMovingAverageStrategy
 from simple_moving_average_ribbon import SimpleMovingAverageRibbonStrategy
-from export import export_all
 from simpler_simple_moving_average import SimplerSimpleMovingAverageStrategy
+from export import export_all
+from visualizer import visualize
 
 events = queue.Queue()
 symbols = []
@@ -59,6 +60,7 @@ while True:
     else:
         print('\n'.join(['{}: {}'.format(column, value) for column, value in portfolio.output_summary_stats()]))
         export_all(bars, portfolio, broker, portfolio.simulation)
+        visualize(bars.latest_symbol_data, portfolio.all_holdings, broker.history, portfolio.simulation)
         break
 
     while True:
