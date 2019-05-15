@@ -31,14 +31,14 @@ class SimpleMovingAverageRibbonStrategy(Strategy):
 
                 bars_mean = []
                 for val in bars:
-                    bars_mean.append(val['CLOSING PRICE'].mean())
+                    bars_mean.append(val['closing_price'].mean())
 
-                if self.should_buy(latest_closing_bar['CLOSING PRICE'][0], bars_mean) and not self.bought[symbol]:
+                if self.should_buy(latest_closing_bar['closing_price'][0], bars_mean) and not self.bought[symbol]:
                     signal = SignalEvent(symbol, latest_closing_bar.iloc[-1].name, 'LONG')
                     self.events.put(signal)
                     self.bought[symbol] = True
 
-                if self.should_sell(latest_closing_bar['CLOSING PRICE'][0], bars_mean) and self.bought[symbol]:
+                if self.should_sell(latest_closing_bar['closing_price'][0], bars_mean) and self.bought[symbol]:
                     signal = SignalEvent(symbol, latest_closing_bar.iloc[-1].name, 'EXIT')
                     self.events.put(signal)
                     self.bought[symbol] = False

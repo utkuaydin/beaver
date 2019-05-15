@@ -61,6 +61,7 @@ def get_data():
 
         current_date = current_date + datetime.timedelta(1)
 
+    alter_column_names(bist)
     return bist
 
 
@@ -68,10 +69,10 @@ def write_symbols(bist):
     symbol_template = os.getcwd() + '/data/bist/symbols/{}.csv'
     make_dirs(symbol_template.split('{}')[0])
 
-    for name, df in bist.groupby('INSTRUMENT SERIES CODE'):
+    for name, df in bist.groupby('INSTRUMENT_SERIES_CODE'):
         target = symbol_template.format(name)
         print("Writing {} to: {}".format(name, target))
-        df.set_index('TRADE DATE', inplace=True)
+        df.set_index('TRADE_DATE', inplace=True)
         df.index = pd.to_datetime(df.index, infer_datetime_format=True)
         df.to_csv(target)
 
@@ -80,8 +81,6 @@ def write_all(bist):
     make_dirs(os.getcwd() + '/data/bist/')
     filename = os.getcwd() + '/data/bist/all.csv'
     print("Writing all to: {}".format(filename))
-    
-    alter_column_names(bist)
 
     bist.set_index('TRADE_DATE', inplace=True)
     bist.index = pd.to_datetime(bist.index, infer_datetime_format=True)

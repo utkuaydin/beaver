@@ -22,12 +22,12 @@ class SimplerSimpleMovingAverageStrategy(Strategy):
         if event.type == 'MARKET':
             for symbol in self.symbol_list:
                 bars = self.bars.get_latest_bars(symbol, self.window)
-                latest_closing_price = self.bars.get_latest_bars(symbol, 1)['CLOSING PRICE'][0]
+                latest_closing_price = self.bars.get_latest_bars(symbol, 1)['closing_price'][0]
 
                 if len(bars.index) < self.window:
                     continue
 
-                avg = bars['CLOSING PRICE'].mean()
+                avg = bars['closing_price'].mean()
 
                 if latest_closing_price > avg and not self.bought[symbol]:
                     signal = SignalEvent(symbol, bars.iloc[-1].name, 'LONG')

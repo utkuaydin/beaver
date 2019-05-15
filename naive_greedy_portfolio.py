@@ -72,7 +72,7 @@ class NaiveGreedyPortfolio(Portfolio):
 
         for symbol in self.symbol_list:
             # Approximation to the real value
-            market_value = self.current_positions[symbol] * bars[symbol].iloc[0]['CLOSING PRICE']
+            market_value = self.current_positions[symbol] * bars[symbol].iloc[0]['closing_price']
             holdings[symbol] = market_value
             holdings['total'] += market_value
 
@@ -101,7 +101,7 @@ class NaiveGreedyPortfolio(Portfolio):
             direction = -1
 
         # Update holdings list with new quantities
-        cost = self.bars.get_latest_bars(fill.symbol).iloc[0]['CLOSING PRICE']  # Close price
+        cost = self.bars.get_latest_bars(fill.symbol).iloc[0]['closing_price']  # Close price
         cost = direction * cost * fill.quantity
         self.current_holdings[fill.symbol] += cost
         self.current_holdings['commission'] += fill.commission
@@ -117,7 +117,7 @@ class NaiveGreedyPortfolio(Portfolio):
     def generate_naive_order(self, signal):
         symbol = signal.symbol
         direction = signal.signal_type
-        close_price = self.bars.get_latest_bars(symbol).iloc[0]['CLOSING PRICE']
+        close_price = self.bars.get_latest_bars(symbol).iloc[0]['closing_price']
         symbol_cash = self.current_holdings['cash'][symbol]
         market_quantity = symbol_cash / close_price
         current_quantity = self.current_positions[symbol]

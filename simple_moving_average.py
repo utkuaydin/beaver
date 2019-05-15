@@ -28,8 +28,8 @@ class SimpleMovingAverageStrategy(Strategy):
                 if len(long_bars.index) < self.long_window:
                     continue
 
-                long_avg = long_bars['CLOSING PRICE'].mean()
-                short_avg = short_bars['CLOSING PRICE'].mean()
+                long_avg = long_bars['closing_price'].mean()
+                short_avg = short_bars['closing_price'].mean()
 
                 if short_avg > long_avg and not self.bought[symbol]:
                     signal = SignalEvent(symbol, long_bars.iloc[-1].name, 'LONG')
