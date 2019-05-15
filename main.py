@@ -2,7 +2,7 @@ import os
 import queue
 import datetime
 
-from backtesting.data import BistDataHandler
+from backtesting.data import BistSQLDataHandler
 from backtesting.execution import SimulatedExecutionHandler
 from naive_greedy_portfolio import NaiveGreedyPortfolio
 from optimized_greedy_portfolio import OptimizedGreedyPortfolio
@@ -29,7 +29,7 @@ while True:
     symbols.append(symbol + '.E')
 
 start_date = datetime.date(2017, 1, 1)
-bars = BistDataHandler(events, csv_dir, symbols, start_date)
+bars = BistSQLDataHandler(events, csv_dir, symbols, start_date)
 
 strategies = [
     SimpleMovingAverageStrategy(bars, events, 40, 100),
@@ -64,7 +64,7 @@ while True:
     else:
         print('\n'.join(['{}: {}'.format(column, value) for column, value in portfolio.output_summary_stats()]))
         export_all(bars, portfolio, broker, portfolio.simulation)
-        visualize(bars.latest_symbol_data, portfolio.all_holdings, broker.history, portfolio.simulation)
+        visualize(bars.symbol_data, portfolio.all_holdings, broker.history, portfolio.simulation)
         break
 
     while True:

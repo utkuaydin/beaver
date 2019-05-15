@@ -6,6 +6,8 @@ https://www.quantstart.com/articles/Event-Driven-Backtesting-with-Python-Part-II
 import datetime
 import os, os.path
 import pandas as pd
+from sqlalchemy import create_engine
+
 
 from abc import ABCMeta, abstractmethod
 
@@ -86,5 +88,66 @@ class BistDataHandler(DataHandler):
             else:
                 if bar is not None:
                     self.latest_symbol_data[symbol] = self.latest_symbol_data[symbol].append(bar)
+
+        self.events.put(MarketEvent())
+
+
+class BistSQLDataHandler(DataHandler):
+    def __init__(self, events, csv_dir, symbol_list, start_date=datetime.date(2015, 12, 1)):
+        self.events = events
+        self.csv_dir = csv_dir
+        self.symbol_list = symbol_list
+        self.start_date = pd.to_datetime(start_date)
+        self.engine = create_engine('postgresql://localhost:5432/bist')
+
+        self.index = None
+        self.index_iter = None
+        self.symbol_data = {}
+        self.latest_symbol_data = {}
+        self.historical_symbol_data = {}
+        self.continue_backtest = True
+
+        self._read_data()
+
+    def _read_data(self):
+        self.index = None
+
+        for symbol in self.symbol_list:
+            query = 'SELECT * FROM data WHERE instrument_series_code=%(symbol)s'
+            self.symbol_data[symbol] = pd.read_sql_query(query, con=self.engine, params={'symbol': symbol}, index_col='trade_date')
+            self.symbol_data[symbol].index = pd.to_datetime(self.symbol_data[symbol].index)
+
+            if self.index is None:
+                self.index = self.symbol_data[symbol].index
+            else:
+                self.index.union(self.symbol_data[symbol].index)
+
+            self.index = self.index.sort_values()
+            self.end_date = self.index[-1]
+            self.latest_symbol_data[symbol] = pd.DataFrame(columns=self.symbol_data[symbol].columns)
+
+        for symbol in self.symbol_list:
+            data = self.symbol_data[symbol].sort_index().reindex(index=self.index, method='pad')
+            self.historical_symbol_data[symbol] = data[:self.start_date]
+            self.symbol_data[symbol] = data[self.start_date:]
+
+        self.index_iter = self.index.to_series()[self.start_date:].iteritems()
+
+    def _get_next_index(self):
+        for index in self.index_iter:
+            yield index[0]
+
+    def get_latest_bars(self, symbol, n=1):
+        return self.latest_symbol_data[symbol].tail(n)
+
+    def update_bars(self):
+        for symbol in self.symbol_list:
+            try:
+                index = self._get_next_index().__next__()
+            except StopIteration:
+                self.continue_backtest = False
+            else:
+                if index is not None:
+                    self.latest_symbol_data[symbol] = self.symbol_data[symbol][:index]
 
         self.events.put(MarketEvent())

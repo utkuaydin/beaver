@@ -1,3 +1,4 @@
+sqlalchemy
 numpy
 pandas
 matplotlib
@@ -5,4 +6,4 @@ requests
 google-cloud-language
 google-cloud-translate
 six
-
+psycopg2
