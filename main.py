@@ -64,7 +64,7 @@ while True:
     else:
         print('\n'.join(['{}: {}'.format(column, value) for column, value in portfolio.output_summary_stats()]))
         export_all(bars, portfolio, broker, portfolio.simulation)
-        visualize(bars.symbol_data, portfolio.all_holdings, broker.history, portfolio.simulation)
+        visualize(bars.symbol_data, broker.history, portfolio.simulation)
         break
 
     while True:
