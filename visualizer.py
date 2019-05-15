@@ -34,8 +34,8 @@ def draw_orders(ax, data, orders):
         directions[symbol] = pd.DataFrame(orders[symbol]).set_index('date')['direction']
 
     for symbol in orders.keys():
-        buy_dates = directions[symbol].index
-        sell_dates = directions[symbol].index
+        buy_dates = directions[symbol][directions[symbol] == 'BUY'].index
+        sell_dates = directions[symbol][directions[symbol] == 'SELL'].index
         data[symbol]['closing_price'].plot(ax=ax, label=symbol[:-2] + ' Closing Price')
         ax.plot(buy_dates, data[symbol]['closing_price'][buy_dates],
                 '^', markersize=10, label=symbol[:-2] + ' Buy Order')
