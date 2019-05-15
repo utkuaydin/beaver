@@ -5,6 +5,9 @@ import zipfile
 import pandas as pd
 
 
+from bist import alter_column_names
+
+
 def make_dirs(path):
     try:
         os.makedirs(path)
@@ -35,6 +38,7 @@ def get_data():
             current_date = current_date + datetime.timedelta(1)
             continue
 
+        print("Fetching: {}".format(current_date))
         zip_filename = downloads_dir + get_filename(current_date)
         csv_filename = downloads_dir + get_filename(current_date, 'csv')
 
@@ -65,10 +69,26 @@ def write_symbols(bist):
     make_dirs(symbol_template.split('{}')[0])
 
     for name, df in bist.groupby('INSTRUMENT SERIES CODE'):
+        target = symbol_template.format(name)
+        print("Writing {} to: {}".format(name, target))
         df.set_index('TRADE DATE', inplace=True)
         df.index = pd.to_datetime(df.index, infer_datetime_format=True)
-        df.to_csv(symbol_template.format(name))
+        df.to_csv(target)
 
+
+def write_all(bist):
+    make_dirs(os.getcwd() + '/data/bist/')
+    filename = os.getcwd() + '/data/bist/all.csv'
+    print("Writing all to: {}".format(filename))
+    
+    alter_column_names(bist)
+
+    bist.set_index('TRADE_DATE', inplace=True)
+    bist.index = pd.to_datetime(bist.index, infer_datetime_format=True)
+    bist.to_csv(filename)
+    
 
 if __name__ == "__main__":
-    write_symbols(get_data())
+    data = get_data()
+    write_symbols(data)
+    write_all(data)
